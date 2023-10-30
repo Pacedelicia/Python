@@ -1,0 +1,66 @@
+import os
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+
+# Substitua com o ID da apresentação que deseja criar ou modificar
+presentation_id = "SUA_ID_DA_APRESENTACAO"
+
+# Configurar as credenciais de autenticação
+credentials = service_account.Credentials.from_service_account_file(
+    'seu-arquivo-de-credenciais.json', scopes=['https://www.googleapis.com/auth/presentations']
+)
+
+# Criar uma instância da API do Google Slides
+service = build('slides', 'v1', credentials=credentials)
+
+# Criar uma apresentação em branco
+presentation = service.presentations().create().execute()
+
+# Adicionar um título
+title_slide_id = presentation['presentationId']
+requests = [
+    {
+        'createSlide': {
+            'objectId': title_slide_id,
+            'slideLayoutReference': {'predefinedLayout': 'TITLE'}
+        }
+    },
+    {
+        'insertText': {
+            'objectId': title_slide_id,
+            'insertionIndex': 0,
+            'text': 'História do Esporte',
+        }
+    }
+]
+service.presentations().batchUpdate(presentationId=title_slide_id, body={'requests': requests}).execute()
+
+# Adicionar slides de conteúdo com informações sobre a história do esporte
+content_slide_id = presentation['slides'][1]['objectId']
+requests = [
+    {
+        'createSlide': {
+            'objectId': content_slide_id,
+            'slideLayoutReference': {'predefinedLayout': 'TITLE_AND_BODY'}
+        }
+    },
+    {
+        'insertText': {
+            'objectId': content_slide_id,
+            'insertionIndex': 0,
+            'text': 'Introdução ao Esporte',
+        }
+    },
+    {
+        'insertText': {
+            'objectId': content_slide_id,
+            'insertionIndex': 1,
+            'text': 'O esporte tem uma longa história que remonta a civilizações antigas...',
+        }
+    },
+    # Adicione mais slides e conteúdo conforme necessário
+]
+
+service.presentations().batchUpdate(presentationId=presentation_id, body={'requests': requests}).execute()
+
+print(f'Apresentação criada com sucesso. ID: {presentation_id}')
